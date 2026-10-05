@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>英打遊戲版本三｜ASDF</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Microsoft JhengHei",sans-serif;background:#f5f3ec;color:#243e38}main{max-width:900px;margin:auto;padding:32px 18px;text-align:center}.panel{background:#fff;border:1px solid #ccd7ce;border-radius:20px;padding:24px;margin:20px 0}.target{font-size:76px;font-weight:800;margin:10px}.score{font-size:22px}.keyboard{display:flex;justify-content:center;gap:10px;margin:25px 0}.key{width:80px;height:70px;display:grid;place-items:center;border:2px solid #98ad9e;border-bottom-width:6px;border-radius:12px;background:#f9faf4;font-size:30px;font-weight:700}.key.lit{background:#a1332e;color:#fff;border-color:#682a28;transform:translateY(-2px);box-shadow:0 0 0 4px #f1d6bc}.controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}button,a{font:inherit;padding:11px 18px;border-radius:10px;border:1px solid #426d5e;background:#426d5e;color:#fff;text-decoration:none;cursor:pointer}button.secondary,a.secondary{background:#fff;color:#284c40}#message{min-height:1.7em;color:#526459}@media(max-width:520px){.key{width:60px;height:58px;font-size:24px}.target{font-size:60px}}
+</style>
+</head><body><main>
+<h1>英打遊戲版本三</h1><p>ASDF 左手練習</p>
+<section class="panel" tabindex="0" id="game">
+<div class="score">分數：<strong id="score">0</strong></div>
+<div class="target" id="target">—</div>
+<div class="keyboard"><div class="key" data-key="A">A</div><div class="key" data-key="S">S</div><div class="key" data-key="D">D</div><div class="key" data-key="F">F</div></div>
+<div class="controls"><button id="start">開始／重新開始</button><button id="stop" class="secondary">停止練習</button><a class="secondary" href="../index.html">回到首頁</a></div>
+<p id="message">按「開始」後，依照提示按下 A、S、D、F。</p>
+</section>
+<script>
+const keys=['A','S','D','F'], target=document.getElementById('target'), scoreEl=document.getElementById('score'), message=document.getElementById('message'), game=document.getElementById('game');let current='',score=0,running=false;
+function next(){document.querySelectorAll('.key').forEach(k=>k.classList.remove('lit'));current=keys[Math.floor(Math.random()*keys.length)];target.textContent=current;document.querySelector(`[data-key="${current}"]`).classList.add('lit');}
+function start(){score=0;scoreEl.textContent=score;running=true;message.textContent='開始練習！';next();game.focus();}
+function stop(){running=false;current='';target.textContent='—';document.querySelectorAll('.key').forEach(k=>k.classList.remove('lit'));message.textContent='練習已停止。';}
+document.getElementById('start').addEventListener('click',start);document.getElementById('stop').addEventListener('click',stop);
+window.addEventListener('keydown',e=>{if(!running||e.repeat)return;const k=e.key.toUpperCase();if(!keys.includes(k))return;if(k===current){score++;scoreEl.textContent=score;message.textContent='答對了！';next();}else{message.textContent='按錯了，再試一次；題目不變。';}});
+</script></main></body></html>
