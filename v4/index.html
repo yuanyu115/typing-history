@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>英打遊戲版本四｜十鍵掉落字母</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,"Microsoft JhengHei",sans-serif;background:#f5f3ec;color:#243e38}main{max-width:1000px;margin:auto;padding:26px 16px;text-align:center}h1{margin-bottom:6px}.sub{margin-top:0;color:#526459}.panel{background:#fff;border:1px solid #ccd7ce;border-radius:20px;padding:18px;margin:16px 0}.stats{display:flex;justify-content:center;gap:22px;flex-wrap:wrap;font-size:18px;margin-bottom:12px}.stage{position:relative;height:390px;overflow:hidden;border:2px solid #98ad9e;border-radius:16px;background:linear-gradient(#f9faf4,#eef2e8)}.ground{position:absolute;left:0;right:0;bottom:18px;border-top:3px dashed #98ad9e}.falling{position:absolute;top:12px;left:50%;transform:translateX(-50%);width:72px;height:72px;border-radius:16px;display:grid;place-items:center;background:#426d5e;color:#fff;font-size:42px;font-weight:800;box-shadow:0 8px 18px #0002}.controls,.settings{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin:15px 0}button,a.button{font:inherit;padding:10px 16px;border-radius:10px;border:1px solid #426d5e;background:#426d5e;color:#fff;text-decoration:none;cursor:pointer}button.secondary,a.secondary{background:#fff;color:#284c40}button:disabled{opacity:.45;cursor:not-allowed}input[type=range]{width:220px}.keyboard{display:flex;justify-content:center;gap:7px;flex-wrap:wrap;margin-top:15px}.key{min-width:58px;height:55px;padding:0 10px;display:grid;place-items:center;border:2px solid #98ad9e;border-bottom-width:5px;border-radius:10px;background:#f9faf4;font-size:22px;font-weight:700}.key.lit{background:#a1332e;color:white;border-color:#682a28;box-shadow:0 0 0 3px #f1d6bc}#message{min-height:1.6em;color:#526459}.result{font-size:22px;font-weight:700}@media(max-width:600px){.stage{height:330px}.key{min-width:48px;height:48px}.falling{width:62px;height:62px;font-size:36px}}
+</style></head>
+<body><main>
+<h1>英打遊戲版本四</h1><p class="sub">十鍵掉落字母：A S D F G H J K L ;</p>
+<section class="panel">
+<div class="settings">
+<label>每個字母落地時間： <input id="speed" type="range" min="3" max="14" value="8" step="1"> <strong><span id="speedValue">8</span> 秒</strong></label>
+<label><input id="progressive" type="checkbox"> 漸進加速（每答對 3 題快 1 秒）</label>
+</div>
+<div class="stats"><span>題目：<strong id="question">0</strong> / 10</span><span>分數：<strong id="score">0</strong></span><span>落地：<strong id="missed">0</strong></span><span>目前速度：<strong id="currentSpeed">8</strong> 秒</span></div>
+<div class="stage" id="stage"><div class="falling" id="falling" hidden>—</div><div class="ground"></div></div>
+<div class="keyboard" id="keyboard"></div>
+<div class="controls"><button id="start">開始／重新開始</button><button id="pause" class="secondary" disabled>暫停</button><button id="resume" class="secondary" disabled>繼續</button><a class="button secondary" href="../index.html">回到首頁</a></div>
+<p id="message">設定速度後按「開始」。一回合共 10 題。</p><div class="result" id="result"></div>
+</section>
+<script>
+const chars=['A','S','D','F','G','H','J','K','L',';'];
+const speed=document.getElementById('speed'),speedValue=document.getElementById('speedValue'),progressive=document.getElementById('progressive'),falling=document.getElementById('falling'),stage=document.getElementById('stage'),questionEl=document.getElementById('question'),scoreEl=document.getElementById('score'),missedEl=document.getElementById('missed'),currentSpeedEl=document.getElementById('currentSpeed'),message=document.getElementById('message'),result=document.getElementById('result'),pauseBtn=document.getElementById('pause'),resumeBtn=document.getElementById('resume'),keyboard=document.getElementById('keyboard');
+chars.forEach(c=>{const k=document.createElement('div');k.className='key';k.dataset.key=c;k.textContent=c;keyboard.appendChild(k)});
+let running=false,paused=false,current='',score=0,missed=0,question=0,startTime=0,elapsedBeforePause=0,durationMs=8000,raf=0;
+function baseSeconds(){return Number(speed.value)}
+function calcSeconds(){return progressive.checked?Math.max(3,baseSeconds()-Math.floor(score/3)):baseSeconds()}
+function lightKey(){document.querySelectorAll('.key').forEach(k=>k.classList.toggle('lit',k.dataset.key===current))}
+function clearKey(){document.querySelectorAll('.key').forEach(k=>k.classList.remove('lit'))}
+function finish(){running=false;paused=false;cancelAnimationFrame(raf);falling.hidden=true;clearKey();pauseBtn.disabled=true;resumeBtn.disabled=true;result.textContent=`完成！10 題得 ${score} 分，落地 ${missed} 題。`;message.textContent='可以調整速度後再玩一次。'}
+function nextQuestion(){if(question>=10){finish();return}question++;questionEl.textContent=question;current=chars[Math.floor(Math.random()*chars.length)];falling.textContent=current;falling.hidden=false;falling.style.top='12px';lightKey();durationMs=calcSeconds()*1000;currentSpeedEl.textContent=calcSeconds();elapsedBeforePause=0;startTime=performance.now();raf=requestAnimationFrame(animate)}
+function animate(now){if(!running||paused)return;const elapsed=elapsedBeforePause+(now-startTime),progress=Math.min(1,elapsed/durationMs),maxY=stage.clientHeight-falling.offsetHeight-24;falling.style.top=(12+progress*Math.max(0,maxY-12))+'px';if(progress>=1){missed++;missedEl.textContent=missed;message.textContent=`${current} 落地了，下一題！`;nextQuestion();return}raf=requestAnimationFrame(animate)}
+function startGame(){cancelAnimationFrame(raf);running=true;paused=false;score=0;missed=0;question=0;scoreEl.textContent='0';missedEl.textContent='0';questionEl.textContent='0';result.textContent='';message.textContent='開始！在字母落地前按對。';pauseBtn.disabled=false;resumeBtn.disabled=true;nextQuestion()}
+function pauseGame(auto=false){if(!running||paused)return;paused=true;cancelAnimationFrame(raf);elapsedBeforePause+=performance.now()-startTime;pauseBtn.disabled=true;resumeBtn.disabled=false;message.textContent=auto?'已自動暫停（你離開了視窗）。':'已暫停。'}
+function resumeGame(){if(!running||!paused)return;paused=false;startTime=performance.now();pauseBtn.disabled=false;resumeBtn.disabled=true;message.textContent='繼續！';raf=requestAnimationFrame(animate)}
+document.getElementById('start').addEventListener('click',startGame);pauseBtn.addEventListener('click',()=>pauseGame(false));resumeBtn.addEventListener('click',resumeGame);
+speed.addEventListener('input',()=>{speedValue.textContent=speed.value;if(running&&!paused)pauseGame(false);currentSpeedEl.textContent=calcSeconds()});
+progressive.addEventListener('change',()=>{if(running&&!paused)pauseGame(false);currentSpeedEl.textContent=calcSeconds()});
+window.addEventListener('keydown',e=>{if(!running||paused||e.repeat)return;const key=e.key.length===1?e.key.toUpperCase():e.key;if(!chars.includes(key))return;if(key===current){cancelAnimationFrame(raf);score++;scoreEl.textContent=score;message.textContent='答對了！';falling.hidden=true;clearKey();nextQuestion()}else message.textContent='按錯了，字母繼續掉！'});
+window.addEventListener('blur',()=>pauseGame(true));document.addEventListener('visibilitychange',()=>{if(document.hidden)pauseGame(true)});
+</script></main></body></html>
